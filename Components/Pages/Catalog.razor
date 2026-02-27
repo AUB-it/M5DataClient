@@ -1,0 +1,40 @@
+﻿@page "/catalog"
+@inject IHttpClientFactory HttpClientFactory
+@attribute [StreamRendering]
+
+<PageTitle>Catalog</PageTitle>
+
+@if (_product == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">@_product.Name</h5>
+            <h6 class="card-subtitle mb-2 text-muted">@_product.Manufacturer</h6>
+            <p class="card-text">ID: @_product.Id</p>
+            <p class="card-text">Image URL: @_product.ImageUrl</p>
+            <p class="card-text">Product URL: @_product.ProductUrl</p>
+            <p class="card-text">Price: @_product.Price</p>
+            <p class="card-text">Brand: @_product.Brand</p>
+            <p class="card-text">Description: @_product.Description</p>
+            <p class="card-text">Model: @_product.Model</p>
+            <p class="card-text">Release date: @_product.ReleaseDate</p>
+            <p class="card-text">Expiry date: @_product.ExpiryDate</p>
+        </div>
+    </div>
+}
+
+@code {
+    private Models.Product? _product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = HttpClientFactory.CreateClient("RemoteCatalogService");
+        _product = await client.GetFromJsonAsync<Models.Product>(
+        "Catalog/7125e019-c469-4dbd-93e5-426de6652523");
+    }
+
+}
