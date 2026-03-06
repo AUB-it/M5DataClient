@@ -2,6 +2,9 @@ using DataClient.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var userConnectionString = Environment.GetEnvironmentVariable("USER_CONNECTION_STRING");
+var catalogConnectionString = Environment.GetEnvironmentVariable("CATALOG_CONNECTION_STRING");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -9,13 +12,13 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient("RemoteUserService", client =>
 {
 // PORT-nr. herunder skal tilpasses senere
-    client.BaseAddress = new Uri("http://localhost:5222");
+    client.BaseAddress = new Uri(userConnectionString);
 });
 
 builder.Services.AddHttpClient("RemoteCatalogService", client =>
 {
 // PORT-nr. herunder skal tilpasses senere
-    client.BaseAddress = new Uri("http://localhost:5125/");
+    client.BaseAddress = new Uri(catalogConnectionString);
 });
 
 var app = builder.Build();
