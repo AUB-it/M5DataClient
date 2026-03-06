@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient("RemoteUserService", client =>
 {
 // PORT-nr. herunder skal tilpasses senere
-    client.BaseAddress = new Uri("http://localhost:1234/");
+    client.BaseAddress = new Uri("http://localhost:5222");
 });
 
 builder.Services.AddHttpClient("RemoteCatalogService", client =>
