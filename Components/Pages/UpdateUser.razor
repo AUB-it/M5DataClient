@@ -1,0 +1,166 @@
+@page "/updateuser/{UserId:guid}"
+@using DataClient.Models
+@using DataClient.Services.Interfaces
+@inject IUserService Service
+@inject NavigationManager NavMan
+@rendermode InteractiveServer
+<h3>Update user</h3>
+
+@if (!loaded)
+{
+    <p>Loading...</p>
+}
+else if (loaded && userExists)
+{
+    if (failed)
+    {
+        <div class="alert alert-danger">
+            <span>Update of user failed</span>
+        </div>
+    }
+     <EditForm Model="_model" OnInvalidSubmit="InvalidSubmit" OnValidSubmit="ValidSubmit" FormName="User">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        
+        <div class="inputDiv">
+            <label>Given name</label>
+            <InputText class="inputStyle" placeholder="Given name" @bind-Value="_model.GivenName"></InputText>
+            <ValidationMessage For="() => _model.GivenName"></ValidationMessage>
+        </div>
+        
+        <div class="inputDiv">
+            <label>Family name</label>
+            <InputText class="inputStyle" placeholder="Family name" @bind-Value="_model.FamilyName"></InputText>
+            <ValidationMessage For="() => _model.FamilyName"></ValidationMessage>
+        </div>
+        
+        <div class="inputDiv">
+            <label>Address 1</label>
+            <InputText class="inputStyle" placeholder="Address 1" @bind-Value="_model.Address1"></InputText>
+            <ValidationMessage For="() => _model.Address1"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Address 2</label>
+            <InputText class="inputStyle" placeholder="Address 2" @bind-Value="_model.Address2"></InputText>
+            <ValidationMessage For="() => _model.Address2"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Postal Code</label>
+            <InputNumber class="inputStyle" placeholder="Postal Code" @bind-Value="_model.PostalCode"></InputNumber>
+            <ValidationMessage For="() => _model.PostalCode"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Fax Number</label>
+            <InputText class="inputStyle" placeholder="Fax Number" @bind-Value="_model.FaxNumber"></InputText>
+            <ValidationMessage For="() => _model.FaxNumber"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>City</label>
+            <InputText class="inputStyle" placeholder="City" @bind-Value="_model.City"></InputText>
+            <ValidationMessage For="() => _model.City"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Email</label>
+            <InputText class="inputStyle" placeholder="Email" @bind-Value="_model.Email"></InputText>
+            <ValidationMessage For="() => _model.Email"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Telephone</label>
+            <InputText class="inputStyle" placeholder="Telephone" @bind-Value="_model.Telephone"></InputText>
+            <ValidationMessage For="() => _model.Telephone"></ValidationMessage>
+        </div>
+        
+        <div>
+            <button type="submit">Update</button>
+        </div>
+        
+     </EditForm>   
+}
+else
+{
+    <p>User does not exist</p>
+}
+
+
+@code {
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    UserDTO _model;
+    EditContext context;
+    bool loaded = false;
+    bool userExists = false;
+    bool failed = false;
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        var usr = await Service.GetUserById(UserId);
+        if (usr is null)
+        {
+            loaded = true;
+            return;
+        }
+
+        _model = new UserDTO()
+        {
+            Address1 = usr.Address1,
+            Address2 = usr.Address2,
+            City = usr.City,
+            Email = usr.Email,
+            FamilyName = usr.FamilyName,
+            FaxNumber = usr.FaxNumber,
+            GivenName = usr.GivenName,
+            PostalCode = usr.PostalCode,
+            Telephone = usr.Telephone
+        };
+        context = new EditContext(_model);
+        loaded = true;
+        userExists = true;
+    }
+    
+    async Task ValidSubmit()
+    {
+        var res = await Service.UpdateUser(_model, UserId);
+        if (res)
+        {
+            NavMan.NavigateTo("/AllUsers");
+        }
+        else
+        {
+            await FailedToUpdate();
+        }
+    }
+    
+    async Task FailedToUpdate()
+    {
+        failed = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        failed = false;
+        StateHasChanged();
+    }
+    
+    void InvalidSubmit()
+    {
+        MarkFieldsAsTouched(context);
+    }
+    
+    private void MarkFieldsAsTouched(EditContext editContext)
+    {
+        var properties = editContext.Model.GetType().GetProperties()
+            .Where(prop => prop.CanRead && prop.CanWrite);
+
+        foreach (var prop in properties)
+        {
+            var fieldIdentifier = new FieldIdentifier(editContext.Model, prop.Name);
+            editContext.NotifyFieldChanged(fieldIdentifier);
+        }
+    }
+
+}

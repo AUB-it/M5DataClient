@@ -1,36 +1,82 @@
-@page "/user"
-@inject IHttpClientFactory HttpClientFactory
-@attribute [StreamRendering]
+@page "/user/{UserId:guid}"
+@using DataClient.Services.Interfaces
+@inject IUserService Service
+@inject NavigationManager NavMan
+@rendermode InteractiveServer
 
 <PageTitle>User</PageTitle>
 
-@if (_user == null)
+@if (_user == null && !searched)
 {
     <p><em>Loading...</em></p>
 }
-else
+else if (_user is not null)
 {
+    if (failed)
+    {
+        <div class="alert alert-danger">
+            <span>Update of user failed</span>
+        </div>
+    }
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">@_user.Name</h5>
+            <h5 class="card-title">@_user.GivenName</h5>
             <p class="card-text"><b>ID:</b> @_user.Id</p>
             <p class="card-text"><b>Address:</b> @_user.Address1</p>
             <p class="card-text"><b>City:</b> @_user.City</p>
             <p class="card-text"><b>Postal Code:</b> @_user.PostalCode</p>
-            <p class="card-text"><b>Email:</b> @_user.EmailAddress</p>
-            <p class="card-text"><b>Phone:</b> @_user.PhoneNumber</p>
+            <p class="card-text"><b>Email:</b> @_user.Email</p>
+            <p class="card-text"><b>Phone:</b> @_user.Telephone</p>
         </div>
     </div>
+    <button @onclick="() => DeleteUser(_user.Id)">Delete user</button>
+    <button @onclick="() => GoToUpdateUserPage(UserId)">Update user</button>
+}
+else
+{
+    <p>User does not exist</p>
 }
 
 @code {
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    bool searched = false;
     private Models.User? _user;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var client = HttpClientFactory.CreateClient("RemoteUserService");
+    bool failed = false;
 
-        _user = await client.GetFromJsonAsync<Models.User>(
-            "User/c9fcbc4b-d2d1-4664-9079-dae78a1de446");
+    protected override async Task OnParametersSetAsync()
+    {
+        _user = await Service.GetUserById(UserId);
+        searched = true;
     }
+    
+    async Task FailedToDelete()
+    {
+        failed = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        failed = false;
+        StateHasChanged();
+    }
+
+    async Task DeleteUser(Guid userId)
+    {
+        var res = await Service.DeleteUser(userId);
+        if (res)
+        {
+            NavMan.NavigateTo("/AllUsers");
+        }
+        else
+        {
+            await FailedToDelete();
+        }
+    }
+
+    void GoToUpdateUserPage(Guid id)
+    {
+        NavMan.NavigateTo($"updateuser/{id}");
+    }
+
 }

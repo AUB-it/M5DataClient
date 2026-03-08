@@ -1,0 +1,78 @@
+@page "/AllUsers"
+@using DataClient.Services.Interfaces
+@inject IUserService Service
+@inject NavigationManager NavMan
+@rendermode InteractiveServer
+
+<h3>AllUsers</h3>
+
+@if (_users == null)
+{
+    <p><i>...Loading</i></p>
+}
+else
+{
+    if (failed)
+    {
+        <div class="alert alert-danger">
+            <span>Update of user failed</span>
+        </div>
+    }
+    
+    @foreach (var user in _users)
+    {
+        <div class="card" @onclick="() => NavToUser(user.Id)">
+            <div class="card-body">
+                <h5 class="card-title">@user.GivenName</h5>
+                <p class="card-text"><b>ID:</b> @user.Id</p>
+            </div>
+        </div>
+        <button @onclick="() => DeleteUser(user.Id)">Delete</button>
+    }
+}
+
+
+
+@code {
+    List<Models.User>? _users;
+    bool failed = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await Service.GetUsers();
+        StateHasChanged();
+    }
+
+    void NavToUser(Guid id)
+    {
+        NavMan.NavigateTo($"/user/{id}");
+    }
+    
+    async Task FailedToDelete()
+    {
+        failed = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        failed = false;
+        StateHasChanged();
+    }
+
+    async Task DeleteUser(Guid id)
+    {
+        Console.WriteLine("Deleting user " + id);
+        var res = await Service.DeleteUser(id);
+        if (res)
+        {
+            var idx = _users.FindIndex(u => u.Id == id);
+            if (idx >= 0)
+            {
+                _users.RemoveAt(idx);
+            }
+        }
+        else
+        {
+            await FailedToDelete();
+        }
+    }
+
+}

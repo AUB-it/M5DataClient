@@ -1,0 +1,134 @@
+@page "/CreateUser"
+@using DataClient.Models
+@using DataClient.Services.Interfaces
+@inject IUserService Service
+@inject NavigationManager NavMan
+@rendermode InteractiveServer
+<h3>CreateUser</h3>
+
+@if (!loaded)
+{
+    <p>Loading...</p>
+}
+else
+{
+    if (failed)
+    {
+        <div class="alert alert-danger">
+            <span>Creation of user failed</span>
+        </div>
+    }
+    
+    <EditForm EditContext="@EditContext" OnSubmit="HandleSubmit" FormName="UserCreate">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        
+        <div class="inputDiv">
+            <label>Given name</label>
+            <InputText class="inputStyle" placeholder="Given name" @bind-Value="_model.GivenName"></InputText>
+            <ValidationMessage For="() => _model.GivenName"></ValidationMessage>
+        </div>
+        
+        <div class="inputDiv">
+            <label>Family name</label>
+            <InputText class="inputStyle" placeholder="Family name" @bind-Value="_model.FamilyName"></InputText>
+            <ValidationMessage For="() => _model.FamilyName"></ValidationMessage>
+        </div>
+        
+        <div class="inputDiv">
+            <label>Address 1</label>
+            <InputText class="inputStyle" placeholder="Address 1" @bind-Value="_model.Address1"></InputText>
+            <ValidationMessage For="() => _model.Address1"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Address 2</label>
+            <InputText class="inputStyle" placeholder="Address 2" @bind-Value="_model.Address2"></InputText>
+            <ValidationMessage For="() => _model.Address2"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Postal Code</label>
+            <InputNumber class="inputStyle" placeholder="Postal Code" @bind-Value="_model.PostalCode"></InputNumber>
+            <ValidationMessage For="() => _model.PostalCode"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Fax Number</label>
+            <InputText class="inputStyle" placeholder="Fax Number" @bind-Value="_model.FaxNumber"></InputText>
+            <ValidationMessage For="() => _model.FaxNumber"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>City</label>
+            <InputText class="inputStyle" placeholder="City" @bind-Value="_model.City"></InputText>
+            <ValidationMessage For="() => _model.City"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Email</label>
+            <InputText class="inputStyle" placeholder="Email" @bind-Value="_model.Email"></InputText>
+            <ValidationMessage For="() => _model.Email"></ValidationMessage>
+        </div>
+
+        <div class="inputDiv">
+            <label>Telephone</label>
+            <InputText class="inputStyle" placeholder="Telephone" @bind-Value="_model.Telephone"></InputText>
+            <ValidationMessage For="() => _model.Telephone"></ValidationMessage>
+        </div>
+        
+        <div class="inputDiv">
+            <button type="submit">Submit</button>
+        </div>
+        
+    </EditForm>
+}
+
+@code {
+
+    UserDTO _model = new UserDTO();
+    EditContext EditContext;
+
+    bool failed = false;
+    bool loaded = false;
+
+    protected override void OnInitialized()
+    {
+        EditContext = new EditContext(_model);
+        loaded = true;
+    }
+
+    async Task HandleSubmit()
+    {
+        if (EditContext.Validate())
+        {
+            await ValidSubmit();
+        }
+        else
+        {
+            Console.WriteLine("Invalid submit");
+        }
+    }
+    
+    async Task ValidSubmit()
+    {
+        Console.WriteLine("Valid submit, creating user");
+        var res = await Service.CreateUser(_model);
+        Console.WriteLine($"Result: {res}");
+        if (res)
+            NavMan.NavigateTo("/AllUsers");
+        else
+        {
+            await FailedToCreate();
+        }
+    }
+
+    async Task FailedToCreate()
+    {
+        failed = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        failed = false;
+        StateHasChanged();
+    }
+
+}
