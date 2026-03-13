@@ -23,7 +23,7 @@ else
     {
         <div class="card" @onclick="() => NavToUser(user.Id)">
             <div class="card-body">
-                <h5 class="card-title">@user.GivenName</h5>
+                <h5 class="card-title">@user.GivenName @user.FamilyName</h5>
                 <p class="card-text"><b>ID:</b> @user.Id</p>
             </div>
         </div>
